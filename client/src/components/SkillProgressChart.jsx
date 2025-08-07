@@ -3,43 +3,58 @@ import {
   CategoryScale,
   LinearScale,
   BarElement,
+  PointElement,
+  LineElement,
   Title,
   Tooltip,
   Legend,
 } from "chart.js";
-import { Bar } from "react-chartjs-2";
+import { Bar, Line } from "react-chartjs-2";
+
+import dayjs from "dayjs"; // optional, for better date handling
 
 // Register chart elements
 ChartJS.register(
   CategoryScale,
   LinearScale,
   BarElement,
+  PointElement,
+  LineElement,
   Title,
   Tooltip,
   Legend
 );
 
-const SkillProgressChart = () => {
-  // Dummy topics and dates (convert dates to day-of-month or labels for simplicity)
-  const labels = ["Hooks", "State", "Props", "Lifecycle"];
+const SkillProgressChart = ({ type, skillData }) => {
+  if (!skillData) return null;
+
+  const labels = skillData.subtopics.map((sub) => sub.title);
+
+  const extractDay = (date) => (date ? dayjs(date).date() : null);
 
   const data = {
     labels,
     datasets: [
       {
         label: "Created",
-        data: [1, 2, 3, 4], // can be timestamp or day number
-        backgroundColor: "#facc15", // yellow
+        data: skillData.subtopics.map((s) => extractDay(s.createdAt)),
+        backgroundColor: "#facc15",
+        borderColor: "#facc15",
+        fill: type === "area",
       },
       {
         label: "Started",
-        data: [2, 3, 4, 5],
-        backgroundColor: "#3b82f6", // blue
+        data: skillData.subtopics.map((s) => extractDay(s.startedAt)),
+        backgroundColor: "#3b82f6",
+        borderColor: "#3b82f6",
+        fill: type === "area",
       },
       {
         label: "Completed",
-        data: [4, 5, 6, 7],
-        backgroundColor: "#22c55e", // green
+        data: skillData.subtopics.map((s) => extractDay(s.completedAt)),
+        backgroundColor: "#22c55e",
+        borderColor: "#22c55e",
+        fill: type === "area",
       },
     ],
   };
@@ -53,7 +68,7 @@ const SkillProgressChart = () => {
       },
       title: {
         display: true,
-        text: "React Subtopic Progress Timeline",
+        text: `${skillData.name} Subtopic Progress Timeline`,
         color: "#fff",
       },
     },
@@ -80,7 +95,11 @@ const SkillProgressChart = () => {
 
   return (
     <div className="bg-slate-800 p-6 rounded-xl max-w-4xl mx-auto">
-      <Bar data={data} options={options} />
+      {type === "line" || type === "area" ? (
+        <Line data={data} options={options} />
+      ) : (
+        <Bar data={data} options={options} />
+      )}
     </div>
   );
 };
